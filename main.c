@@ -100,9 +100,14 @@ int main(int argc, char **argv) {
                 // associationcycle();
             }
         }
+        
         printf("\nBLOCK %d\n",icycle);
         if(sys.sim_type != 4){
             terminate_block();
+        }
+        if(sys.coor_fivering == 1){
+            printf("coordinates of fivering are being generated\n");
+            get_fiverings(&slice[0], icycle);
         }
         time_t block2_1 = time(0);
         double datetime_diff2 = difftime(block2_1, block2_0);
@@ -113,6 +118,8 @@ int main(int argc, char **argv) {
     // }
     dprint(icycle);
     dprint(jcycle);
+
+    
 
     finalstat();
     time_t t1 = time(0);
@@ -239,6 +246,8 @@ void mccycle() {
             }
             
         }
+
+
         free(copyslice);
     }
     else{
@@ -256,7 +265,7 @@ void mccycle() {
     }
 
     
-  
+
     return;
 }
 

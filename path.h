@@ -5,6 +5,8 @@
 #include <stdlib.h>
 
 
+#include "glut.h"
+
 /*------------------INLINE SUBSTITUTIONS-------------------------------------*/
 
 //Binary definitions
@@ -599,13 +601,16 @@ typedef struct cluster_type{
   to find the stack */
 
     int           analysis,
-                  clustersize[NPART], 
+                  clustersize[NPART],
+                  freq_cyclics[NPART],
                   update; 
 
     struct particles_in_cluster_list_type     pic[NPART];
 
     StatsLength   size_histogram,
-                  size_distribution;
+                  size_distribution,
+                  cyclicmol_histogram,
+                  cyclicmol_distribution;
 
 } Cluster;
 
@@ -688,7 +693,8 @@ typedef struct system_type {
                   snapshot,
                   switch_method,     // definition of full S.  0 :S=max(thetai, thetaj)) or 1: S=Si*Sj, 2 S=(lin comb of S0, S90, 180)
                   warmup,
-                  xy_print;
+                  xy_print,
+                  coor_fivering;
                   
 
     double        energy,
@@ -860,6 +866,7 @@ extern void chain_linkedlist(Slice *);
 extern void check_maxbonds(Slice *);
 extern int cluster_analysis(Slice *);
 extern void clustersize_identification(Slice *psl);
+extern void cyclicmol_freq_update(Slice *psl);
 extern double end_to_end_distance2(Slice *, int);
 extern ChainNode* GetNewNode(int);
 extern void InsertAtChainHead(int, int);
@@ -874,6 +881,7 @@ extern void update_patch_vector_ipart(Slice *, int );
 extern void update_patch_vectors(Slice *);
 extern void print_xy_positions(Slice *);
 extern void linked_structure_icluster(Slice *, int , int );
+extern void get_fiverings(Slice *, int);
 
 /*constructnn.c*/
 extern void setup_nnlist();

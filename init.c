@@ -625,12 +625,16 @@ void init_simtype(Slice *psl){
         
         strcpy(cluster.size_histogram.filename,"clustersize_histogram.dat");
         strcpy(cluster.size_distribution.filename,"clustersize_distribution.dat");
+        strcpy(cluster.cyclicmol_histogram.filename,"cyclicmol_histogram.dat");
+        strcpy(cluster.cyclicmol_distribution.filename,"cyclicmol_distribution.dat");
 
         strcpy(chain.e2e2.filename,"e2e2.dat");
         
         if(sys.empty_files==0){
             read_statistics_file(&cluster.size_histogram);
             read_statistics_file(&cluster.size_distribution);
+            read_statistics_file(&cluster.cyclicmol_histogram);
+            read_statistics_file(&cluster.cyclicmol_distribution);
             read_statistics_file(&chain.e2e2);
         }   
     }
@@ -938,7 +942,10 @@ void read_input(void) {
             sscanf(pt,"%d",&sys.nchains);
         } else if( strcmp(pt,"chaingap")==0) {
             pt = strtok(NULL," ");
-            sscanf(pt,"%lf",&sys.chaingap);
+            sscanf(pt,"%lf",&sys.chaingap); 
+        } else if( strcmp(pt,"coor_fivering")==0) {
+            pt = strtok(NULL," ");
+            sscanf(pt,"%d",&sys.coor_fivering);
         } 
                 // } else if( strcmp(pt,"timestep")==0) {
         //     pt = strtok(NULL," ");

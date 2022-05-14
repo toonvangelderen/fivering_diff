@@ -174,15 +174,12 @@ double particle_energy(Slice *psl, int ipart, int jpart) {
         vector_minus(psi->r,psk->r,rik);
         pbc(rik,sys.boxl); /*do perform pbc when using no nnl*/
 
-
         r2 = vector_inp(rik,rik);
         r=sqrt(r2);
         r_radii=sys.particletype[psi->ptype].radius+sys.particletype[psk->ptype].radius;
         s=r-r_radii;
         // if (ipart>1000){gprint(s);}
         if(s<sys.rcutoff && s>0.0) { 
-            
-
             /*  calculate here the s, s_pp,s_bp and the angles that are use for the switch function*/
             orientation_parameters(psl,ipart,kpart, &s_bb,&s_bp1,&s_bp2,&s_pp, &cosphi_i, &cosphi_j, &cosphi_ij);
             if (fabs(s-s_bb)>1e-10){
@@ -202,7 +199,7 @@ double particle_energy(Slice *psl, int ipart, int jpart) {
                 S=0;
             }
             else{
-                S=1; // S_value(psl,cosphi_i,cosphi_j, nulvec,nulvec, nulvec, ipart, jpart); // I can use nulvec here, because I take S90 anyway
+                S=S_value(psl,cosphi_i,cosphi_j, nulvec,nulvec, nulvec, ipart, jpart); // I can use nulvec here, because I take S90 anyway
             }
             Ebond=Eatr*S;
 
@@ -398,7 +395,7 @@ double potential_attractive_bond_energy(Slice *psl, int ipart, int jpart){
         S=0;
     }
     else{
-        S=1; // S_value(psl,cosphi_i,cosphi_j, nulvec,nulvec, nulvec, ipart, jpart); // I can use nulvec here, because I take S90 anyway
+        S=S_value(psl,cosphi_i,cosphi_j, nulvec,nulvec, nulvec, ipart, jpart); // I can use nulvec here, because I take S90 anyway
     }
     Ebond=Eatr*S;
 

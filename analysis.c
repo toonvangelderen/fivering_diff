@@ -499,6 +499,94 @@ void xy_plane_patchangle_calc(Slice *psl){
     
 } 
 
+void get_fiverings(Slice *psl, int block){
+    /*grab all clusters with ring size 5 and nbonds = 5.
+    and print the particle number and position to a file */
+
+    int nclusters = psl->nclusters;
+    int n, id, i, ipart, totbonds = 0, N, id_clustersize;
+    FILE *file;
+    char filename[100];
+    char* a = "fivering";
+    char* extension = ".dat";
+
+    // loop over all clusters
+    for (id=0; id<nclusters; id++){
+
+        if (id == 0) {
+                snprintf( filename, sizeof( filename ), "%s%s", a, extension );
+                file = fopen(filename,"a");
+
+                if (file == NULL){
+                        printf("Error with opening \"fivering.dat\" file");
+                }
+                else{    
+                    fprintf(file, "Fiverings in block %d\n\n", block);
+                }
+                fclose(file);
+        }
+
+        id_clustersize=cluster.clustersize[id];
+        // check if cluster has size 5
+        if (id_clustersize == 5){
+            // if it has size 5 check if it has 10 bonds
+            for (n=0; n<5; n++){
+                // get clusters with size 5 and get particles of this cluster
+                ipart = cluster.pic[id].stack[n];
+                // for every particle get the total number of bonds
+                N = psl->pts[ipart].nbonds;
+                // add up all these values
+                totbonds = totbonds + N;
+                // if the total amounts to 10 it is a five ring
+                if  (totbonds==10){
+                    //loop over all the particles in the just found fivering
+                    //
+                    for (i=0; i<5; i++){
+                        
+                        snprintf( filename, sizeof( filename ), "%s%s", a, extension );
+                        file = fopen(filename,"a");
+
+                        //get the particles in the stack
+                        ipart = cluster.pic[id].stack[i];
+
+                        if (file == NULL){
+                                printf("Error with opening \"fivering.dat\" file");
+                        }
+                        else{    
+                            if (i==0){
+                                fprintf(file, "clusterid = %d\n", id);
+                            }
+                            fprintf(file,"%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n", psl->pts[ipart].r.x, psl->pts[ipart].r.y, psl->pts[ipart].r.z,
+                                 psl->pts[ipart].q.q0, psl->pts[ipart].q.q1, psl->pts[ipart].q.q2, psl->pts[ipart].q.q3);
+                            if (i==4){
+                                fprintf(file, "\n");
+                            }
+                        }
+                        fclose(file);
+                    }       
+                }
+            }
+            //set totbonds to 0 after analysis is done
+            totbonds = 0;
+        }
+
+        if (id == (nclusters-1)) {
+            snprintf( filename, sizeof( filename ), "%s%s", a, extension );
+            file = fopen(filename,"a");
+
+            if (file == NULL){
+                    printf("Error with opening \"fivering.dat\" file");
+            }
+            else{    
+                fprintf(file, "\n");
+            }
+            fclose(file);
+        }
+    }
+return;
+}
+
+   
 
 int bond_check(Slice *psl, int i, int j){
     /* check whether there exists a bond between particle i and j. Based on the treshold value sys.bond_cutoffE
@@ -522,7 +610,6 @@ int bond_check(Slice *psl, int i, int j){
 
     return 0;
 }
-
 
 double bond_distance(Slice *psl, int i, int j, int pbc){
     /* calculates and returns the distance between two particles. specify with pbc if pbc should be on or off*/
@@ -691,9 +778,10 @@ void clustersize_freq_update(Slice *psl){
     int   freq_clusterlength[NPART]={0};
     
 
-    for(i=0;i<psl->nclusters;i++){
+    for(i=0;i<psl->nclusters;i++){ // loop over all cluster 
+        // cluster.clustersize[i]=5 cluster i has length 5
         freq_clusterlength[cluster.clustersize[i]-1]++;
-    } 
+    }
 
     for(l=0;l<sys.npart;l++){
         /*loops over the lengths which has maximumvalue of sys.npart*/
@@ -705,6 +793,83 @@ void clustersize_freq_update(Slice *psl){
     } 
 
     return; 
+}
+
+void cyclicmol_freq_update(Slice *psl){
+
+    int nclusters = psl->nclusters;
+    int n, id, id_1, l, i, ipart, totbonds = 0, N, id_clustersize, dummy;
+    int freq_cyclics[NPART]={0};
+    FILE *file;
+    char filename[100];
+    char* a = "rings";
+    char* extension = ".dat";
+
+    for (id=0; id<nclusters; id++){
+        if (id == 0) {
+            snprintf( filename, sizeof( filename ), "%s%s", a, extension );
+            file = fopen(filename,"a");
+            if (file == NULL){
+                    printf("Error with opening \"fivering.dat\" file");
+            }
+            else{    
+                fprintf(file, "rings in this block\n");
+            }
+            fclose(file);
+        }
+        //get the clustersize of cluster_id
+        id_clustersize=cluster.clustersize[id];
+        //make dummy variable with twice the amount of particles in the cluster
+        dummy = (2*id_clustersize);
+        // check if it has more or equal to twice the number of particles in bonds
+        for (n=0; n<id_clustersize; n++){
+            // for every particle in the cluster
+            ipart = cluster.pic[id].stack[n];
+            // get the number of bonds
+            N = psl->pts[ipart].nbonds;
+            // add up all these values
+            totbonds = totbonds + N;
+            // if it has more or equal to twice the amount of bonds it is a ring
+            if  ((dummy>=totbonds)){
+                // tick for every ringsize in the array freq_cyclics
+                // freq_cyclics[5] = 10 means that there is ten rings of size 5
+                freq_cyclics[id_clustersize-1]++;
+                printf("%d",id_clustersize);
+                printf("%d",freq_cyclics[id_clustersize]);
+                printf("%d",dummy);
+                for (i=0; i<id_clustersize; i++){
+                    snprintf( filename, sizeof( filename ), "%s%s", a, extension );
+                    file = fopen(filename,"a");
+                    //get the particles in the stack
+                    ipart = cluster.pic[id].stack[i];
+                    if (file == NULL){
+                            printf("Error with opening \"fivering.dat\" file");
+                    }
+                    else{    
+                        if (i==0){
+                            fprintf(file, "clusterid = %d\n", id);
+                        }
+                        fprintf(file,"%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n", psl->pts[ipart].r.x, psl->pts[ipart].r.y, psl->pts[ipart].r.z,
+                                psl->pts[ipart].q.q0, psl->pts[ipart].q.q1, psl->pts[ipart].q.q2, psl->pts[ipart].q.q3);
+                        if (i==id_clustersize+2){
+                            fprintf(file, "\n");
+                        }
+                    }
+                    fclose(file);
+                }
+
+            }
+        }
+    }
+    
+    for(l=0;l<sys.npart;l++){
+        /*loops over the lengths which has maximumvalue of sys.npart*/
+        // update_average(chain.length_histogram[i], freq_clusterlength[i]);
+        
+        running_statistics(&cluster.cyclicmol_histogram.length[l], freq_cyclics[l]);
+        running_statistics(&cluster.cyclicmol_distribution.length[l], (double)freq_cyclics[l]/psl->nclusters);
+
+    }
 }
 
 void chain_linkedlist(Slice *psl){

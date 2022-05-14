@@ -92,8 +92,12 @@ void terminate_block() {
         
         clustersize_identification(&slice[0]);
         clustersize_freq_update(&slice[0]);
+        cyclicmol_freq_update(&slice[0]);
         print_statistics_file(&cluster.size_histogram);
         print_statistics_file(&cluster.size_distribution);
+        print_statistics_file(&cluster.cyclicmol_histogram);
+        print_statistics_file(&cluster.cyclicmol_distribution);
+
 
         bond_length_average(&slice[0]); 
         printf("bond length average =  %.12lf \n", bond_length.mean);
